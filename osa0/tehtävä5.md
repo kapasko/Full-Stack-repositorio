@@ -4,11 +4,11 @@ sequenceDiagram
 	participant server
 
 	browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/spa
-    activate server
-    server->>browser: HTML-tiedosto
-    deactivate browser
+    	activate server
+    	server->>browser: HTML-tiedosto
+    	deactivate browser
 
-    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
+   	browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/main.css
 	activate server
 	server-->>browser: CSS-tiedosto
 	deactivate server
@@ -23,7 +23,7 @@ sequenceDiagram
 	server-->>browser: JSON-tiedosto
 	deactivate server
 
-    browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/favicon.ico
+    	browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/favicon.ico
 	activate server
 	server-->>browser: Selaimen favicon, jota ei näytä olevan.
 	deactivate server

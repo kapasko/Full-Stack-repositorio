@@ -24,5 +24,10 @@ sequenceDiagram
 	server-->>browser: [{"content": "asd", "date": "2023-05-18T15:27:00.429Z"}, ...]
 	deactivate server
 	Note right of browser: Selain vastaanottaa JSON-tiedoston, jossa on uusi lisäys.
+
+	browser->>server: GET https://studies.cs.helsinki.fi/exampleapp/favicon.ico
+	activate server
+	server-->>browser: Selaimen favicon, jota ei näytä olevan.
+	deactivate server
 	
 ```

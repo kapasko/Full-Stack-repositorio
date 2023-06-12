@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import axios from "axios"
+import noteService from "./services/notes"
 
 const Filter = ({ newFilter, handleFilterChange }) => {
   return (
@@ -12,6 +12,14 @@ const Filter = ({ newFilter, handleFilterChange }) => {
         />
       </div>
     </form>
+  )
+}
+
+const Header = ({ text }) => {
+  return (
+    <div>
+      <h2>{text}</h2>
+    </div>
   )
 }
 
@@ -38,23 +46,24 @@ const PersonForm = ({ addPerson, newName, handleNameChange, newNumber, handleNum
   )
 }
 
-const Person = ({ name, number}) => {
+const Person = ({ name, number, handleDeletion}) => {
   return (
     <div>
       {name} {number}
+      <button onClick={handleDeletion}>delete</button>
     </div>
   )
 }
 
-const Persons = ({ personsToShow }) => {
-  return (
-    <div>
-      {personsToShow.map(person => 
-      <Person key={person.id} name={person.name} number={person.number} />
-      )}
-    </div>
-  )
-}
+//const Persons = ({ personsToShow, handleDeletion }) => {
+  //return (
+    //<div>
+      //{personsToShow.map(person => 
+      //<Person key={person.id} name={person.name} number={person.number} />
+      //)}
+    //</div>
+  //)
+//}
 
 const App = () => {
   const [persons, setPersons] = useState([]) 
@@ -64,8 +73,8 @@ const App = () => {
   const filter = newFilter.toLowerCase()
 
   const hook = () => {
-    axios
-      .get("http://localhost:3001/persons")
+    noteService
+      .getAll()
       .then(response => {
         //console.log("data", response.data)
         setPersons(response.data)
@@ -89,17 +98,33 @@ const App = () => {
     const personObject = {
       name: newName,
       number: newNumber,
-      id: persons.length + 1
     }
 
     //console.log("current person id", personObject.id)
 
     if (nameArray.includes(newName)) {
-      alert(`${newName} is already added to phonebook`)
+      const person = persons.find(person => person.name === newName)
+      const id = person.id
+      //console.log(person)
+      const decision = window.confirm(`${newName} is already added to phonebook, replace the old number with a new one?`)
+      
+      if (decision) {
+        noteService
+          .update(id, personObject)
+          .then(response => {
+            setPersons(persons.map(person => person.id !== id ? person : response.data))
+            setNewName("")
+            setNewNumber("")
+          })
+      }
     } else {
-      setPersons(persons.concat(personObject))
-      setNewName("")
-      setNewNumber("")
+      noteService
+        .create(personObject)
+        .then(response => {
+          setPersons(persons.concat(response.data))
+          setNewName("")
+          setNewNumber("")
+        })
     }
   }
 
@@ -114,16 +139,39 @@ const App = () => {
 
   const handleFilterChange = (event) => {
     setNewFilter(event.target.value)
-  }      
+  }
+
+  const handleDeletionOf = id => {
+    const name = persons[id-1].name
+    const decision = window.confirm(`Delete ${name}?`)
+    //console.log(decision)
+
+    if (decision) {
+      noteService
+        .deletePerson(id)
+
+      setPersons(persons.filter(person => person.id !== id))
+    }
+  }
 
   return (
     <div>
-      <h2>Phonebook</h2>
+      <Header text="Phonebook" />
       <Filter newFilter={newFilter} handleFilterChange={handleFilterChange} />
-      <h2>add a new</h2>
-      <PersonForm addPerson={addPerson} newName={newName} handleNameChange={handleNameChange} newNumber={newNumber} handleNumberChange={handleNumberChange} />
-      <h2>Numbers</h2>
-      <Persons personsToShow={personsToShow} />
+      <Header text="add a new" />
+      <PersonForm 
+        addPerson={addPerson} 
+        newName={newName} 
+        handleNameChange={handleNameChange} 
+        newNumber={newNumber} 
+        handleNumberChange={handleNumberChange}
+      />
+      <Header text="Numbers" />
+      <div>
+        {personsToShow.map(person => 
+          <Person key={person.id} name={person.name} number={person.number} handleDeletion={() => handleDeletionOf(person.id)} />
+        )}
+    </div>
     </div>
   )
 }

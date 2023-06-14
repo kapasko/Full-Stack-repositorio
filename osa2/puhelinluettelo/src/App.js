@@ -55,6 +55,30 @@ const Person = ({ name, number, handleDeletion}) => {
   )
 }
 
+const Notification = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="notification">
+      {message}
+    </div>
+  )
+}
+
+const Error = ({ message }) => {
+  if (message === null) {
+    return null
+  }
+
+  return (
+    <div className="error">
+      {message}
+    </div>
+  )
+}
+
 //const Persons = ({ personsToShow, handleDeletion }) => {
   //return (
     //<div>
@@ -70,6 +94,9 @@ const App = () => {
   const [newName, setNewName] = useState('')
   const [newNumber, setNewNumber] = useState("")
   const [newFilter, setNewFilter] = useState("")
+  const [message, setMessage] = useState(null)
+  const [errorMessage, setErrorMessage] = useState(null)
+
   const filter = newFilter.toLowerCase()
 
   const hook = () => {
@@ -115,6 +142,7 @@ const App = () => {
             setPersons(persons.map(person => person.id !== id ? person : response.data))
             setNewName("")
             setNewNumber("")
+            setMessage(`Updated ${newName}`)
           })
       }
     } else {
@@ -124,8 +152,12 @@ const App = () => {
           setPersons(persons.concat(response.data))
           setNewName("")
           setNewNumber("")
+          setMessage(`Added ${newName}`)
         })
     }
+    setTimeout(() => {
+      setMessage(null)
+    }, 3000)
   }
 
   const handleNameChange = (event) => {
@@ -142,21 +174,34 @@ const App = () => {
   }
 
   const handleDeletionOf = id => {
-    const name = persons[id-1].name
+    const person = persons.find(person => person.id === id)
+    const name = person.name
     const decision = window.confirm(`Delete ${name}?`)
     //console.log(decision)
 
     if (decision) {
       noteService
         .deletePerson(id)
+        .catch(error => {
+          setMessage(null)
+          setErrorMessage(`Information of ${name} has already been removed from server`)
+        })
 
       setPersons(persons.filter(person => person.id !== id))
+      setMessage(`Deleted ${name}`)
+
     }
+    setTimeout(() => {
+      setMessage(null)
+      setErrorMessage(null)
+    }, 3000)
   }
 
   return (
     <div>
       <Header text="Phonebook" />
+      <Notification message={message} />
+      <Error message={errorMessage} />
       <Filter newFilter={newFilter} handleFilterChange={handleFilterChange} />
       <Header text="add a new" />
       <PersonForm 
